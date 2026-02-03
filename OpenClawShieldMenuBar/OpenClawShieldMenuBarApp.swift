@@ -23,8 +23,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var popover: NSPopover!
     var timer: Timer?
     
-    @Published var securityStatus: SecurityStatus = .unknown
-    
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -48,6 +46,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { [weak self] _ in
             self?.runSecurityScan()
         }
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        // Clean up timer to prevent resource leaks
+        timer?.invalidate()
+        timer = nil
     }
     
     @objc func togglePopover() {

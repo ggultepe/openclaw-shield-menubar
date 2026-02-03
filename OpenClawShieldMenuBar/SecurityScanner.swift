@@ -18,13 +18,29 @@ class SecurityScanner: ObservableObject {
     @Published var skillsTracked: Int = 0
     @Published var lastScanTime: String = "Never"
     
-    private let scriptsPath = "\(NSHomeDirectory())/clawd/scripts"
+    // Allow custom script path via CLAWD_HOME environment variable
+    private var scriptsPath: String {
+        if let clawdHome = ProcessInfo.processInfo.environment["CLAWD_HOME"] {
+            return "\(clawdHome)/scripts"
+        }
+        return "\(NSHomeDirectory())/clawd/scripts"
+    }
+    
+    private var baselinePath: String {
+        if let clawdHome = ProcessInfo.processInfo.environment["CLAWD_HOME"] {
+            return "\(clawdHome)/memory/skills-baseline.txt"
+        }
+        return "\(NSHomeDirectory())/clawd/memory/skills-baseline.txt"
+    }
     
     private init() {}
     
     func runScan() async {
         await MainActor.run {
             isScanning = true
+            // Clear previous issues to prevent accumulation
+            criticalIssues.removeAll()
+            warningIssues.removeAll()
         }
         
         // Run monitor-skills.sh --check
@@ -69,9 +85,18 @@ class SecurityScanner: ObservableObject {
         // Parse the monitor-skills.sh output
         
         // Count tracked skills from baseline
-        let baselinePath = "\(NSHomeDirectory())/clawd/memory/skills-baseline.txt"
         if let baselineContent = try? String(contentsOfFile: baselinePath) {
             skillsTracked = baselineContent.components(separatedBy: "\n").filter { !$0.isEmpty }.count
+        } else {
+            // Baseline file missing or unreadable
+            criticalIssues.append(SecurityIssue(
+                title: "Cannot read baseline",
+                description: "Failed to read skills baseline at \(baselinePath)",
+                severity: .critical,
+                suggestedFix: "Run: ~/clawd/scripts/monitor-skills.sh --init",
+                canAutoFix: false
+            ))
+            skillsTracked = 0
         }
         
         // Check exit code
@@ -107,14 +132,23 @@ class SecurityScanner: ObservableObject {
                         ))
                     }
                 } else if line.contains("Modified skill:") {
-                    let skillName = line.replacingOccurrences(of: "✏️  Modified skill:", with: "")
-                        .replacingOccurrences(of: "Modified skill:", with: "")
+                    // Remove emoji and "Modified skill:" prefix, handle both cases
+                    var skillName = line
+                    if let range = skillName.range(of: "Modified skill:") {
+                        skillName = String(skillName[range.upperBound...])
+                    }
+                    skillName = skillName
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .trimmingCharacters(in: CharacterSet(charactersIn: "✏️"))
                         .trimmingCharacters(in: .whitespaces)
+                    
+                    guard !skillName.isEmpty else { continue }
+                    
                     issues.append(SecurityIssue(
                         title: "Modified skill: \(skillName)",
                         description: "Skill content changed since last baseline",
                         severity: .critical,
-                        suggestedFix: "Investigate changes, then update baseline",
+                        suggestedFix: "Investigate changes, then run: ~/clawd/scripts/monitor-skills.sh --init",
                         canAutoFix: false
                     ))
                 }
@@ -145,11 +179,28 @@ class SecurityScanner: ObservableObject {
             process.standardOutput = pipe
             process.standardError = pipe
             
+            // Add 30-second timeout to prevent hanging
+            let timeoutTimer = DispatchQueue.global().asyncAfter(deadline: .now() + 30.0) {
+                if process.isRunning {
+                    process.terminate()
+                }
+            }
+            
             do {
                 try process.run()
                 process.waitUntilExit()
                 
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                // Read output with size limit (1MB max to prevent memory issues)
+                let maxBytes = 1024 * 1024
+                var data = Data()
+                let handle = pipe.fileHandleForReading
+                
+                while data.count < maxBytes {
+                    let chunk = handle.availableData
+                    if chunk.isEmpty { break }
+                    data.append(chunk)
+                }
+                
                 let output = String(data: data, encoding: .utf8) ?? ""
                 
                 continuation.resume(returning: (output, process.terminationStatus))

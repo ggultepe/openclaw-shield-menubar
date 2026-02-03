@@ -213,20 +213,10 @@ struct IssueRowView: View {
             }
             
             if let fix = issue.suggestedFix {
-                HStack {
-                    Text(fix)
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    Spacer()
-                    if issue.canAutoFix {
-                        Button("Fix") {
-                            // TODO: Implement auto-fix
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                    }
-                }
-                .padding(.leading, 20)
+                Text(fix)
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                    .padding(.leading, 20)
             }
         }
         .padding(8)
