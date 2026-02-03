@@ -65,7 +65,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     
     func updateStatusIcon(_ status: SecurityStatus) {
-        securityStatus = status
         if let button = statusItem.button {
             switch status {
             case .safe:
