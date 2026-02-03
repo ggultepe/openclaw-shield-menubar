@@ -180,7 +180,7 @@ class SecurityScanner: ObservableObject {
             process.standardError = pipe
             
             // Add 30-second timeout to prevent hanging
-            let timeoutTimer = DispatchQueue.global().asyncAfter(deadline: .now() + 30.0) {
+            DispatchQueue.global().asyncAfter(deadline: .now() + 30.0) {
                 if process.isRunning {
                     process.terminate()
                 }
