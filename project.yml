@@ -1,0 +1,24 @@
+name: OpenClawShieldMenuBar
+options:
+  bundleIdPrefix: com.artificialguven
+  deploymentTarget:
+    macOS: "13.0"
+targets:
+  OpenClawShieldMenuBar:
+    type: application
+    platform: macOS
+    sources:
+      - OpenClawShieldMenuBar
+    info:
+      path: Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.artificialguven.openclawshield.menubar
+      MARKETING_VERSION: "1.0"
+      CURRENT_PROJECT_VERSION: "1"
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      SWIFT_VERSION: "5.9"
+      ENABLE_PREVIEWS: YES
