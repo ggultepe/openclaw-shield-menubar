@@ -18,7 +18,7 @@ struct OpenClawShieldMenuBarApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var statusItem: NSStatusItem!
     var popover: NSPopover!
     var timer: Timer?
