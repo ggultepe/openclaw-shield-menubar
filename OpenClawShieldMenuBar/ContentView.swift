@@ -29,7 +29,7 @@ struct ContentView: View {
                     }
                 }
                 Spacer()
-                Text("v1.1.0")
+                Text("v1.1.1")
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 6)

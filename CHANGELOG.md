@@ -2,6 +2,23 @@
 
 All notable changes to OpenClaw Shield Menu Bar will be documented in this file.
 
+## [1.1.1] - 2026-02-10
+
+### 🐛 UI Bug Fixes
+
+**Issue #1: Version shows 'Unknown' on startup**
+- Fixed: Now checks version immediately on app launch
+
+**Issue #2: 'Update Now' button incorrectly styled**
+- Fixed: Replaced with "Up to date" badge when no update available
+- Blue "Update Now" button only appears when there's an actual update
+
+**Issue #3: Security 'Check Now' has no feedback**
+- Fixed: Shows "Done! ✓" with green checkmark for 1.5 seconds after scan
+- State moved to SecurityScanner singleton for reliable UI updates
+
+---
+
 ## [1.1.0] - 2026-02-10
 
 ### ✨ New Feature: OpenClaw Update Checker
