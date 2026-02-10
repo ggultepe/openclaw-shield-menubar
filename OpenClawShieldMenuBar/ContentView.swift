@@ -274,8 +274,9 @@ struct UpdateSectionView: View {
                         Text("Update Now")
                     }
                 }
-                .buttonStyle(updateChecker.hasUpdate ? .borderedProminent : .bordered)
+                .buttonStyle(.borderedProminent)
                 .disabled(!updateChecker.hasUpdate || updateChecker.isChecking || updateChecker.isUpdating)
+                .opacity(updateChecker.hasUpdate ? 1.0 : 0.5)
             }
         }
         .padding()
