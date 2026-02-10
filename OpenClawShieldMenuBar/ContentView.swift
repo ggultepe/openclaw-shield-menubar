@@ -317,8 +317,6 @@ struct UpdateSectionView: View {
 struct StatusSummaryView: View {
     @ObservedObject var scanner: SecurityScanner
     let onRefresh: () -> Void
-    @State private var showingDone = false
-    @State private var previousScanTime: String = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -357,17 +355,14 @@ struct StatusSummaryView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    previousScanTime = scanner.lastScanTime
-                    onRefresh()
-                }) {
+                Button(action: onRefresh) {
                     HStack(spacing: 4) {
                         if scanner.isScanning {
                             ProgressView()
                                 .scaleEffect(0.6)
                                 .controlSize(.small)
                             Text("Scanning...")
-                        } else if showingDone {
+                        } else if scanner.justCompleted {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
                             Text("Done!")
@@ -379,16 +374,7 @@ struct StatusSummaryView: View {
                     }
                     .font(.caption)
                 }
-                .disabled(scanner.isScanning || showingDone)
-                .onChange(of: scanner.lastScanTime) { newValue in
-                    // Show "Done!" when scan completes (lastScanTime changes)
-                    if newValue != previousScanTime && !previousScanTime.isEmpty {
-                        showingDone = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            showingDone = false
-                        }
-                    }
-                }
+                .disabled(scanner.isScanning || scanner.justCompleted)
             }
         }
         .padding()

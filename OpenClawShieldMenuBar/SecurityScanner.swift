@@ -12,6 +12,7 @@ class SecurityScanner: ObservableObject {
     static let shared = SecurityScanner()
     
     @Published var isScanning = false
+    @Published var justCompleted = false  // Shows "Done!" briefly after scan
     @Published var currentStatus: SecurityStatus = .unknown
     @Published var criticalIssues: [SecurityIssue] = []
     @Published var warningIssues: [SecurityIssue] = []
@@ -54,7 +55,13 @@ class SecurityScanner: ObservableObject {
         await MainActor.run {
             lastScanTime = timeString
             isScanning = false
+            justCompleted = true
             updateOverallStatus()
+            
+            // Reset justCompleted after 1.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.justCompleted = false
+            }
         }
     }
     
