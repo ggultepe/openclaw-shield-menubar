@@ -16,19 +16,26 @@ struct ContentView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Image(systemName: statusIcon)
-                    .font(.title2)
-                    .foregroundColor(statusColor)
-                Text("OpenClaw Shield")
-                    .font(.headline)
-                Spacer()
-                Button(action: {
-                    appDelegate.runSecurityScan()
-                }) {
-                    Image(systemName: "arrow.clockwise")
+                HStack(spacing: 8) {
+                    Image(systemName: statusIcon)
+                        .font(.title2)
+                        .foregroundColor(statusColor)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("OpenClaw Shield")
+                            .font(.headline)
+                        Text("Security Monitor")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .buttonStyle(.plain)
-                .help("Refresh scan")
+                Spacer()
+                Text("v1.1.0")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .cornerRadius(4)
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
@@ -49,7 +56,9 @@ struct ContentView: View {
                         .padding()
                     } else {
                         // Status summary
-                        StatusSummaryView(scanner: scanner)
+                        StatusSummaryView(scanner: scanner, onRefresh: {
+                            appDelegate.runSecurityScan()
+                        })
                         
                         // Update checker section
                         UpdateSectionView(updateChecker: updateChecker)
@@ -85,16 +94,46 @@ struct ContentView: View {
             Divider()
             
             // Footer
-            HStack {
-                Text("Skills: \(scanner.skillsTracked) tracked")
-                    .font(.caption)
+            VStack(spacing: 6) {
+                HStack {
+                    Text("Skills: \(scanner.skillsTracked) tracked")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Button("Quit") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .buttonStyle(.plain)
                     .foregroundColor(.secondary)
-                Spacer()
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
                 }
-                .buttonStyle(.plain)
-                .foregroundColor(.secondary)
+                
+                Divider()
+                
+                HStack(spacing: 4) {
+                    Text("Built by")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    Text("Artificial Güven")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    Text("•")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    Button(action: {
+                        if let url = URL(string: "https://github.com/ggultepe/openclaw-shield-menubar") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "link")
+                            Text("GitHub")
+                        }
+                        .font(.caption2)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.blue)
+                }
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -235,8 +274,8 @@ struct UpdateSectionView: View {
                         Text("Update Now")
                     }
                 }
+                .buttonStyle(updateChecker.hasUpdate ? .borderedProminent : .bordered)
                 .disabled(!updateChecker.hasUpdate || updateChecker.isChecking || updateChecker.isUpdating)
-                .buttonStyle(.borderedProminent)
             }
         }
         .padding()
@@ -267,22 +306,60 @@ struct UpdateSectionView: View {
 
 struct StatusSummaryView: View {
     let scanner: SecurityScanner
+    let onRefresh: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Security Status")
                     .font(.headline)
                 Spacer()
                 Text(statusText)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusColor.opacity(0.2))
+                    .foregroundColor(statusColor)
+                    .cornerRadius(4)
             }
             
             HStack(spacing: 16) {
                 StatusBadge(count: scanner.criticalIssues.count, label: "Critical", color: .red)
                 StatusBadge(count: scanner.warningIssues.count, label: "Warnings", color: .orange)
                 StatusBadge(count: scanner.skillsTracked, label: "Skills", color: .blue)
+            }
+            
+            Divider()
+            
+            // Last checked + Check Now
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Last checked")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    Text(scanner.lastScanTime.isEmpty ? "Never" : scanner.lastScanTime)
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                }
+                
+                Spacer()
+                
+                Button(action: onRefresh) {
+                    HStack(spacing: 4) {
+                        if scanner.isScanning {
+                            ProgressView()
+                                .scaleEffect(0.6)
+                                .controlSize(.small)
+                            Text("Scanning...")
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Check Now")
+                        }
+                    }
+                    .font(.caption)
+                }
+                .disabled(scanner.isScanning)
             }
         }
         .padding()
@@ -292,10 +369,19 @@ struct StatusSummaryView: View {
     
     private var statusText: String {
         switch scanner.currentStatus {
-        case .safe: return "Secure"
-        case .warning: return "Review Needed"
-        case .critical: return "Action Required"
-        case .unknown: return "Unknown"
+        case .safe: return "✓ Secure"
+        case .warning: return "⚠ Review Needed"
+        case .critical: return "✕ Action Required"
+        case .unknown: return "? Unknown"
+        }
+    }
+    
+    private var statusColor: Color {
+        switch scanner.currentStatus {
+        case .safe: return .green
+        case .warning: return .orange
+        case .critical: return .red
+        case .unknown: return .gray
         }
     }
 }

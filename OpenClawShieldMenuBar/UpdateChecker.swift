@@ -43,11 +43,9 @@ class UpdateChecker: ObservableObject {
     // MARK: - Public Methods
     
     func startMonitoring() {
-        // Check on launch if >4 hours since last check
-        if shouldCheckForUpdate() {
-            Task {
-                await checkForUpdates()
-            }
+        // Always check on launch to populate version fields
+        Task {
+            await checkForUpdates()
         }
         
         // Schedule periodic checks
