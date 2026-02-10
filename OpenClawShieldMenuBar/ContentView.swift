@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var appDelegate: AppDelegate
     @StateObject private var scanner = SecurityScanner.shared
+    @StateObject private var updateChecker = UpdateChecker.shared
     
     var body: some View {
         VStack(spacing: 0) {
@@ -49,6 +50,9 @@ struct ContentView: View {
                     } else {
                         // Status summary
                         StatusSummaryView(scanner: scanner)
+                        
+                        // Update checker section
+                        UpdateSectionView(updateChecker: updateChecker)
                         
                         // Issues list
                         if !scanner.criticalIssues.isEmpty {
@@ -114,6 +118,149 @@ struct ContentView: View {
         case .warning: return .orange
         case .critical: return .red
         case .unknown: return .gray
+        }
+    }
+}
+
+struct UpdateSectionView: View {
+    @ObservedObject var updateChecker: UpdateChecker
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("OpenClaw Version")
+                    .font(.headline)
+                Spacer()
+                if updateChecker.hasUpdate {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .foregroundColor(.blue)
+                        Text("Update Available")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
+                }
+            }
+            
+            // Version info
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Installed")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(updateChecker.installedVersion)
+                        .font(.system(.body, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Divider()
+                    .frame(height: 30)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Latest")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Text(updateChecker.latestVersion)
+                            .font(.system(.body, design: .monospaced))
+                        if updateChecker.hasUpdate {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(.blue)
+                                .font(.caption)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            // Last check time
+            if let lastCheck = updateChecker.lastCheckTime {
+                Text("Last checked: \(formatDate(lastCheck))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            // Error message
+            if let error = updateChecker.errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(error.contains("successful") ? .green : .orange)
+                    .padding(.top, 4)
+            }
+            
+            // Update progress
+            if !updateChecker.updateProgress.isEmpty {
+                HStack {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                    Text(updateChecker.updateProgress)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                Button(action: {
+                    Task {
+                        await updateChecker.checkForUpdates()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        if updateChecker.isChecking {
+                            ProgressView()
+                                .scaleEffect(0.5)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text("Check Now")
+                    }
+                }
+                .disabled(updateChecker.isChecking || updateChecker.isUpdating)
+                
+                Spacer()
+                
+                Button(action: {
+                    Task {
+                        _ = await updateChecker.installUpdate()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        if updateChecker.isUpdating {
+                            ProgressView()
+                                .scaleEffect(0.5)
+                        } else {
+                            Image(systemName: "arrow.down.circle")
+                        }
+                        Text("Update Now")
+                    }
+                }
+                .disabled(!updateChecker.hasUpdate || updateChecker.isChecking || updateChecker.isUpdating)
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .cornerRadius(8)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let now = Date()
+        let interval = now.timeIntervalSince(date)
+        
+        if interval < 60 {
+            return "Just now"
+        } else if interval < 3600 {
+            let minutes = Int(interval / 60)
+            return "\(minutes)m ago"
+        } else if interval < 86400 {
+            let hours = Int(interval / 3600)
+            return "\(hours)h ago"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
         }
     }
 }

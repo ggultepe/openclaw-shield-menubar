@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 @main
 struct OpenClawShieldMenuBarApp: App {
@@ -18,12 +19,21 @@ struct OpenClawShieldMenuBarApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, UNUserNotificationCenterDelegate {
     var statusItem: NSStatusItem!
     var popover: NSPopover!
     var timer: Timer?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Setup notification delegate
+        UNUserNotificationCenter.current().delegate = self
+        
+        // Request notification permission
+        UpdateChecker.shared.requestNotificationPermission()
+        
+        // Setup notification actions
+        setupNotificationActions()
+        
         // Create status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
@@ -46,12 +56,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { [weak self] _ in
             self?.runSecurityScan()
         }
+        
+        // Start update monitoring
+        UpdateChecker.shared.startMonitoring()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        // Clean up timer to prevent resource leaks
+        // Clean up timers to prevent resource leaks
         timer?.invalidate()
         timer = nil
+        
+        UpdateChecker.shared.stopMonitoring()
     }
     
     @objc func togglePopover() {
@@ -90,6 +105,48 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 updateStatusIcon(SecurityScanner.shared.currentStatus)
             }
         }
+    }
+    
+    // MARK: - Notification Setup
+    
+    private func setupNotificationActions() {
+        let updateAction = UNNotificationAction(
+            identifier: "UPDATE_NOW",
+            title: "Update Now",
+            options: [.foreground]
+        )
+        
+        let category = UNNotificationCategory(
+            identifier: "UPDATE_CATEGORY",
+            actions: [updateAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+    }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if response.actionIdentifier == "UPDATE_NOW" {
+            // Open popover and trigger update
+            if let button = statusItem.button {
+                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            }
+            
+            // Trigger update
+            Task {
+                _ = await UpdateChecker.shared.installUpdate()
+            }
+        }
+        
+        completionHandler()
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Show notification even when app is in foreground
+        completionHandler([.banner, .sound])
     }
 }
 

@@ -2,6 +2,42 @@
 
 All notable changes to OpenClaw Shield Menu Bar will be documented in this file.
 
+## [1.1.0] - 2026-02-10
+
+### ✨ New Feature: OpenClaw Update Checker
+
+Automatically checks for OpenClaw updates and notifies you when a new version is available.
+
+**Features:**
+- 📦 Version monitoring — Checks every 4 hours automatically
+- 🔔 macOS notifications — Alert when update is available
+- ⬆️ One-click update — "Update Now" button in the UI
+- 🛡️ Gateway awareness — Warns if gateway is running during update
+- 🔐 Permission handling — Guides user with sudo command if needed
+- 🏠 NVM support — Detects npm in NVM installations (~/.nvm/versions/node/)
+
+**Security (5/5 rating):**
+- ✅ No command injection — Uses Process API with args array
+- ✅ Path traversal protection — Semver regex validation for NVM directories
+- ✅ Error output sanitization — 200 char limit, newlines stripped
+- ✅ Precise permission detection — Only triggers on actual EACCES errors
+- ✅ Gateway state captured once — No race conditions during update
+
+**Development Process:**
+- Full 4-phase SDLC pipeline: Analyst → Coder → QA → Reviewer
+- 2 iteration loops (QA fixes + security fixes)
+- 8 sub-agent passes total
+- Final security rating: ⭐⭐⭐⭐⭐ (5/5)
+
+**Files Added:**
+- `UpdateChecker.swift` — Version checking, update installation, notifications
+
+**Files Modified:**
+- `ContentView.swift` — Added version display section and update buttons
+- `OpenClawShieldMenuBarApp.swift` — Initialize UpdateChecker, request notification permissions
+
+---
+
 ## [1.0.0] - 2026-02-03
 
 ### 🎉 Initial Release
@@ -65,14 +101,18 @@ Native macOS menu bar app for continuous OpenClaw security monitoring.
 
 ## Future Roadmap
 
-### v1.1.0 (Planned)
+### v1.1.0 ✅ COMPLETE
+- [x] OpenClaw Update Checker (version monitoring + notifications)
+- [x] macOS notifications (for updates)
+- [x] NVM npm detection support
+
+### v1.2.0 (Planned)
 - [ ] Integration with audit-skill.sh for per-skill scanning
-- [ ] macOS notifications for critical findings
 - [ ] Settings panel (scan frequency, enable/disable checks)
 - [ ] Detailed logs viewer
 - [ ] Auto-fix actions (baseline update, etc.)
 
-### v1.2.0 (Planned)
+### v1.3.0 (Planned)
 - [ ] JSON output parsing (more robust than text parsing)
 - [ ] Persistent logging with os_log
 - [ ] Export report to file
@@ -94,6 +134,7 @@ Native macOS menu bar app for continuous OpenClaw security monitoring.
 | 1.0.0-rc1 | 2026-02-03 | ⚠️ Not released | Initial build, had critical bugs |
 | 1.0.0-rc2 | 2026-02-03 | ✅ Production ready | All critical issues fixed |
 | 1.0.0 | 2026-02-03 | 🚀 Release | Finalized after testing |
+| 1.1.0 | 2026-02-10 | 🚀 Release | Update Checker feature |
 
 ---
 

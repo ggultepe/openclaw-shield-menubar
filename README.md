@@ -2,7 +2,7 @@
 
 Native macOS menu bar app for continuous OpenClaw security monitoring.
 
-**Status:** ✅ Production Ready (v1.0.0) — All critical issues fixed after Reviewer audit
+**Status:** ✅ Production Ready (v1.1.0) — Now with Update Checker!
 
 ---
 
@@ -15,6 +15,14 @@ Native macOS menu bar app for continuous OpenClaw security monitoring.
 - ⚡ **Manual refresh** (on-demand scan button)
 - 📈 **Skills tracking** (52 skills monitored)
 - 🎨 **Native UI** (Swift/SwiftUI, feels like macOS)
+
+### Update Checker (NEW in v1.1.0)
+- 📦 **Version monitoring** — Checks for OpenClaw updates every 4 hours
+- 🔔 **Notifications** — macOS notification when update available
+- ⬆️ **One-click update** — "Update Now" button runs `npm -g install openclaw@latest`
+- 🛡️ **Gateway awareness** — Warns if gateway is running during update
+- 🔐 **Permission handling** — Guides user with sudo command if needed
+- 🏠 **NVM support** — Detects npm in NVM installations
 
 ### Security Features
 - ✅ **Skill baseline monitoring** (detects new/removed/modified skills)
@@ -153,15 +161,22 @@ See [TESTING.md](TESTING.md) for comprehensive testing checklist.
 This app has been audited by our **Reviewer agent** (security-focused code review).
 
 **Security Rating:** ⭐⭐⭐⭐⭐ (5/5)  
-**Code Quality:** ⭐⭐⭐⭐☆ (4/5)
+**Code Quality:** ⭐⭐⭐⭐⭐ (5/5)
 
-**Fixed Issues:**
+### v1.0.0 Fixes
 - ✅ Issue accumulation bug (critical)
 - ✅ No timeout on shell execution (critical)
 - ✅ Timer not invalidated (important)
 - ✅ Silent baseline read failure (important)
 - ✅ Hardcoded script paths (important)
 - ✅ No output buffer limit (important)
+
+### v1.1.0 Update Checker Security
+- ✅ No command injection (Process API with args array)
+- ✅ Path traversal protection (semver regex validation for NVM)
+- ✅ Error output sanitization (200 char limit, no ANSI codes)
+- ✅ Precise permission detection (no false positive sudo prompts)
+- ✅ Gateway state captured once (no race conditions)
 
 See [CHANGELOG.md](CHANGELOG.md) for full audit results.
 
@@ -171,16 +186,20 @@ See [CHANGELOG.md](CHANGELOG.md) for full audit results.
 
 1. **Text parsing only** — Uses regex/string parsing instead of JSON. Fragile to format changes.
 2. **Single check** — Only runs `monitor-skills.sh`. Future: integrate `audit-skill.sh`.
-3. **No notifications** — No macOS notification support yet.
-4. **No persistent logs** — Debugging requires Xcode console.
+3. **No persistent logs** — Debugging requires Xcode console.
+4. **Update needs sudo** — Global npm install may require admin access (guided).
 
 ---
 
 ## 🚧 Roadmap
 
-### v1.1.0 (Next)
+### v1.1.0 ✅ COMPLETE
+- [x] **OpenClaw Update Checker** — Version monitoring + notifications + one-click update
+- [x] macOS notifications (for updates)
+- [x] NVM npm detection support
+
+### v1.2.0 (Next)
 - [ ] Integration with `audit-skill.sh` (per-skill scanning)
-- [ ] macOS notifications for critical findings
 - [ ] Settings panel (scan frequency, enable/disable checks)
 - [ ] Detailed logs viewer
 - [ ] Auto-fix actions (baseline update)

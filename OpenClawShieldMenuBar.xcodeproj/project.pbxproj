@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5E2967F8110B74513BC41F60 /* SecurityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF36AE2B82B5A0E44F51B19 /* SecurityScanner.swift */; };
 		748EB9BC5AD73A9D9F674D27 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A78C1F48156F718352378CE /* ContentView.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A6978877665544 /* UpdateChecker.swift */; };
 		EE4D83046D5067155C99051B /* OpenClawShieldMenuBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3931AB83D760AB58FC22299F /* OpenClawShieldMenuBarApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -17,6 +18,7 @@
 		3931AB83D760AB58FC22299F /* OpenClawShieldMenuBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenClawShieldMenuBarApp.swift; sourceTree = "<group>"; };
 		BB335FED8951B00F3F8574C9 /* OpenClawShieldMenuBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenClawShieldMenuBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CBF36AE2B82B5A0E44F51B19 /* SecurityScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScanner.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A6978877665544 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -42,6 +44,7 @@
 				0A78C1F48156F718352378CE /* ContentView.swift */,
 				3931AB83D760AB58FC22299F /* OpenClawShieldMenuBarApp.swift */,
 				CBF36AE2B82B5A0E44F51B19 /* SecurityScanner.swift */,
+				F1E2D3C4B5A6978877665544 /* UpdateChecker.swift */,
 			);
 			path = OpenClawShieldMenuBar;
 			sourceTree = "<group>";
@@ -102,6 +105,7 @@
 				748EB9BC5AD73A9D9F674D27 /* ContentView.swift in Sources */,
 				EE4D83046D5067155C99051B /* OpenClawShieldMenuBarApp.swift in Sources */,
 				5E2967F8110B74513BC41F60 /* SecurityScanner.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* UpdateChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
