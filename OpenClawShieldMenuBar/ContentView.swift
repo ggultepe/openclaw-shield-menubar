@@ -259,24 +259,33 @@ struct UpdateSectionView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    Task {
-                        _ = await updateChecker.installUpdate()
-                    }
-                }) {
-                    HStack(spacing: 4) {
-                        if updateChecker.isUpdating {
-                            ProgressView()
-                                .scaleEffect(0.5)
-                        } else {
-                            Image(systemName: "arrow.down.circle")
+                if updateChecker.hasUpdate {
+                    Button(action: {
+                        Task {
+                            _ = await updateChecker.installUpdate()
                         }
-                        Text("Update Now")
+                    }) {
+                        HStack(spacing: 4) {
+                            if updateChecker.isUpdating {
+                                ProgressView()
+                                    .scaleEffect(0.5)
+                            } else {
+                                Image(systemName: "arrow.down.circle")
+                            }
+                            Text("Update Now")
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(updateChecker.isChecking || updateChecker.isUpdating)
+                } else {
+                    Text("Up to date")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(4)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(!updateChecker.hasUpdate || updateChecker.isChecking || updateChecker.isUpdating)
-                .opacity(updateChecker.hasUpdate ? 1.0 : 0.5)
             }
         }
         .padding()
@@ -306,8 +315,10 @@ struct UpdateSectionView: View {
 }
 
 struct StatusSummaryView: View {
-    let scanner: SecurityScanner
+    @ObservedObject var scanner: SecurityScanner
     let onRefresh: () -> Void
+    @State private var showingDone = false
+    @State private var previousScanTime: String = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -346,13 +357,21 @@ struct StatusSummaryView: View {
                 
                 Spacer()
                 
-                Button(action: onRefresh) {
+                Button(action: {
+                    previousScanTime = scanner.lastScanTime
+                    onRefresh()
+                }) {
                     HStack(spacing: 4) {
                         if scanner.isScanning {
                             ProgressView()
                                 .scaleEffect(0.6)
                                 .controlSize(.small)
                             Text("Scanning...")
+                        } else if showingDone {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Done!")
+                                .foregroundColor(.green)
                         } else {
                             Image(systemName: "arrow.clockwise")
                             Text("Check Now")
@@ -360,7 +379,16 @@ struct StatusSummaryView: View {
                     }
                     .font(.caption)
                 }
-                .disabled(scanner.isScanning)
+                .disabled(scanner.isScanning || showingDone)
+                .onChange(of: scanner.lastScanTime) { newValue in
+                    // Show "Done!" when scan completes (lastScanTime changes)
+                    if newValue != previousScanTime && !previousScanTime.isEmpty {
+                        showingDone = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            showingDone = false
+                        }
+                    }
+                }
             }
         }
         .padding()
